@@ -1,11 +1,11 @@
 ---
 name: book-video-maker
-description: 書單號爆款短影音生成器。背景圖由 Codex 內建的圖像生成工具（Codex OAuth 認證，免 API Key、走 ChatGPT 訂閱額度）預生，Python 腳本負責語音 (edge-tts) + 影片合成 (ffmpeg/libx264)。當使用者要求生成「書單號」「書摘短影音」「金句影片」或指定書名做爆款短片時觸發。
+description: 書單號爆款短影音生成器。背景圖由 Codex 內建的圖像生成工具（Codex OAuth 認證，免 API Key、走 ChatGPT 訂閱額度）預生，Python 腳本負責語音 (edge-tts) + 影片合成（hyperframes 或 ffmpeg/libx264 自動偵測）。當使用者要求生成「書單號」「書摘短影音」「金句影片」或指定書名做爆款短片時觸發。
 ---
 
-# Book Video Maker 3.0 — Codex 圖像 + 本地合成 Skill
+# Book Video Maker 3.1 — Codex 圖像 + 雙引擎合成 Skill
 
-書單爆款短影音生成器 — **圖像由 Codex 預生，腳本只做語音+影片合成**
+書單爆款短影音生成器 — **圖像由 Codex 預生，腳本做語音 + 影片合成**
 
 ## 職責劃分
 
@@ -13,9 +13,39 @@ description: 書單號爆款短影音生成器。背景圖由 Codex 內建的圖
 |---|---|---|
 | 1. 背景圖生成 | **Codex 內建圖像工具** | Codex CLI 自帶的 image generation tool（Codex OAuth → ChatGPT 訂閱額度） |
 | 2. 語音合成 | Python 腳本 | edge-tts |
-| 3. 影片合成 | Python 腳本 | ffmpeg + libx264 |
+| 3. 影片合成 | Python 腳本（引擎可插拔） | **預設 auto**：偵測到 Node 22+ 與 hyperframes 走 hyperframes，否則 fallback ffmpeg/libx264 |
 
 **腳本不再呼叫任何雲端圖像 API**，所以也不需要 `OPENAI_API_KEY` / `ARK_API_KEY` 之類的設定。Codex OAuth 一次登入後（`codex login`），所有圖像生成都走訂閱額度，不另計費。
+
+## 合成引擎
+
+| 引擎 | 渲染棧 | 觸發條件 | 適合 |
+|---|---|---|---|
+| **hyperframes** ⭐ | HTML/CSS/JS → Puppeteer + FFmpeg → MP4 | Node ≥ 22 且 `hyperframes` 已裝（global 或 local） | 想要更花俏的動畫、轉場、字卡客製 |
+| **ffmpeg** | 純 FFmpeg + libx264 + drawtext | FFmpeg 含 libx264 即可 | 輕量部署（Alpine 容器、低資源 server） |
+
+預設 `--engine auto`：腳本會被動偵測（**不會自動安裝任何 npm 套件**）。偵測順序：
+
+1. `hyperframes`：檢查 `node --version` ≥ 22，且 `hyperframes` 在 PATH 或 `./node_modules/.bin/` 內。
+2. 上一步不通過 → 退 `ffmpeg`（檢查 `ffmpeg -encoders` 含 `libx264`）。
+3. 兩個都不通過 → 列出原因並 exit 3。
+
+要強制指定引擎：`--engine ffmpeg` 或 `--engine hyperframes`（強制時若不可用會立即報錯，不會 fallback）。
+
+> ⚠️ **hyperframes 引擎標記為 experimental**——HTML/CSS schema 來自公開文件（README + quickstart + llms.txt），動畫和字幕語法可能會微調。建議先在 `who_moved_my_cheese.json`（16 句最短）跑通再用到長模板。
+
+### 安裝 hyperframes（可選）
+
+```bash
+# 系統需求：Node.js >= 22
+node --version  # 確認 ≥ v22
+
+# 全局安裝（推薦，每個專案都能用）
+npm install -g hyperframes
+
+# 或專案本地安裝
+npm install hyperframes
+```
 
 ---
 
@@ -78,16 +108,25 @@ codex exec --dangerously-bypass-approvals-and-sandbox \
 ### Step 4 — 執行合成腳本
 
 ```bash
+# 預設：自動偵測引擎（推薦）
 python scripts/generate.py \
   -b "穷爸爸富爸爸" \
   -a "罗伯特·清崎" \
   -q templates/rich_dad_poor_dad.json \
   --run-dir "$RUN_DIR"
+
+# 強制使用 ffmpeg（向後相容）
+python scripts/generate.py ... --engine ffmpeg
+
+# 強制使用 hyperframes（需先 npm i -g hyperframes）
+python scripts/generate.py ... --engine hyperframes
 ```
 
 `--run-dir` 重用 Step 2 建好的目錄；腳本會從同一個目錄讀取 `bg_NN.jpg`。
 
 若想另放圖片目錄，加 `--images-dir <path>`。
+
+**hyperframes 引擎的副產物**：會在 `$RUN_DIR/hyperframes/` 內留下完整 HTML 專案（`meta.json` + `index.html` + `assets/`），可以用 `npx hyperframes preview`（在該目錄內）即時預覽，方便調整 CSS/動畫。
 
 ### Step 5 — 取得成品
 
@@ -135,6 +174,13 @@ Agent 看到此訊息應補生缺圖後**重新執行腳本（同一個 --run-di
   codex --version    # 確認已裝
   codex login        # 完成 OAuth (一次性, 之後讀 ~/.codex/auth.json)
   codex exec "say hi" # 煙霧測試
+  ```
+- **（可選）Node.js ≥ 22 + hyperframes**（解鎖 hyperframes 引擎；不裝會自動退 ffmpeg）：
+  ```bash
+  # Ubuntu/Debian (NodeSource)
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+  sudo apt install -y nodejs
+  npm install -g hyperframes
   ```
 
 ## Linux 部署 (從零開始)
@@ -206,9 +252,19 @@ ls -la "$RUN_DIR/final.mp4"
 | `--rate` | `-r` | 語速 | `+0%` |
 | `--images-dir` | `-I` | 預生圖目錄 | 同 run_dir |
 | `--run-dir` | — | 重用既有 run_dir | 新建時間戳目錄 |
+| `--engine` | `-e` | 合成引擎: `auto` / `ffmpeg` / `hyperframes` | `auto` |
 
 ---
 
-**版本**: 3.0.0
-**更新**: 2026-05-16
+**版本**: 3.1.0
+**更新**: 2026-05-17
 **作者**: QClaw
+
+## 變更紀錄
+
+- **3.1.0** (2026-05-17)
+  - 加入 `--engine` 旗標（`auto` / `ffmpeg` / `hyperframes`），預設 `auto`。
+  - 新增 hyperframes 引擎 (`scripts/engines/hyperframes_engine.py`，experimental)：產生 HTML/CSS/JS 專案後呼叫 `npx hyperframes render`。
+  - 把原本 ffmpeg 合成段抽到 `scripts/engines/ffmpeg_engine.py`，行為與 3.0 一致。
+  - 偵測為被動式：沒裝 Node/hyperframes 也不會自動安裝，會 fallback 到 ffmpeg。
+- **3.0.0** — Codex OAuth 圖像 + 本地語音/影片合成 baseline。
