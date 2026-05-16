@@ -1,0 +1,41 @@
+{
+  "name": "book-video-maker",
+  "version": "3.1.0",
+  "description": "书单爆款短视频生成器 - Codex 圖像工具 + 本地語音/影片合成 (Linux 部署)",
+  "author": "QClaw",
+  "license": "MIT",
+  "platform": "linux",
+  "keywords": ["video", "book", "tiktok", "douyin", "xiaohongshu", "codex", "image-gen", "linux"],
+  "requires": {
+    "python": ">=3.8",
+    "ffmpeg": "含 libx264 (Ubuntu/Debian apt 預設套件即可)",
+    "system_pkgs": ["ffmpeg", "jq", "fonts-noto-cjk"],
+    "codex_cli": "已 codex login (OAuth)"
+  },
+  "auto_install": ["edge-tts"],
+  "image_contract": {
+    "tool": "Codex CLI 內建 image generation tool",
+    "auth": "Codex OAuth (ChatGPT 訂閱額度, 不需 API Key)",
+    "batch_helper": "scripts/predraw.sh <quotes.json> <run_dir>",
+    "delegation": "若 agent 自身非 Codex，透過 codex exec 委派 (predraw.sh 已封裝)",
+    "recommended_size": "1024x1536",
+    "recommended_format": "jpeg",
+    "filename_pattern": "bg_<NN>.jpg",
+    "save_to": "run_dir (與 generate.py --run-dir 對齊)"
+  },
+  "scripts": {
+    "predraw": "scripts/predraw.sh",
+    "main": "scripts/generate.py"
+  },
+  "fonts": {
+    "bundled": ["NotoSansCJKsc-Bold.ttf", "NotoSansCJKsc-Regular.ttf", "arial.ttf", "msyhbd.ttf", "msyh.ttf"],
+    "linux_recommended": ["NotoSansCJKsc-Bold.ttf", "NotoSansCJKsc-Regular.ttf"],
+    "license_warning": "msyhbd.ttf/msyh.ttf 為 Microsoft YaHei，Linux 商用發佈需替換為 Noto CJK"
+  },
+  "templates": [
+    "rich_dad_poor_dad.json - 《穷爸爸富爸爸》22句财富思维",
+    "who_moved_my_cheese.json - 《谁动了我的奶酪》16句变化应对",
+    "willpower.json - 《自控力》17句自我管理"
+  ],
+  "usage": "./scripts/predraw.sh templates/<x>.json <run_dir> && python3 scripts/generate.py -b 书名 -a 作者 -q templates/<x>.json --run-dir <run_dir>"
+}
