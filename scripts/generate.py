@@ -47,7 +47,7 @@ from engines import common, ffmpeg_engine, hyperframes_engine  # noqa: E402
 OUTPUT_DIR = Path("output")
 IMAGE_EXTENSIONS = ("jpg", "jpeg", "png", "webp")
 RECOMMENDED_IMAGE_SIZE = "1024x1536"
-DEFAULT_VOICE = "zh-CN-YunxiNeural"
+DEFAULT_VOICE = "zh-TW-YunJheNeural"
 
 ENGINES = {
     "ffmpeg": ffmpeg_engine,

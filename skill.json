@@ -1,6 +1,6 @@
 {
   "name": "book-video-maker",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "书单爆款短视频生成器 - Codex 圖像工具 + 本地語音/影片合成 (Linux 部署)",
   "author": "QClaw",
   "license": "MIT",
@@ -33,9 +33,11 @@
     "license_warning": "msyhbd.ttf/msyh.ttf 為 Microsoft YaHei，Linux 商用發佈需替換為 Noto CJK"
   },
   "templates": [
-    "rich_dad_poor_dad.json - 《穷爸爸富爸爸》22句财富思维",
-    "who_moved_my_cheese.json - 《谁动了我的奶酪》16句变化应对",
-    "willpower.json - 《自控力》17句自我管理"
+    "rich_dad_poor_dad.json - 《窮爸爸富爸爸》22句財富思維（繁體）",
+    "who_moved_my_cheese.json - 《誰動了我的奶酪》16句變化應對（繁體）",
+    "willpower.json - 《自控力》17句自我管理（繁體）"
   ],
+  "subtitle_locale": "zh-Hant",
+  "default_voice": "zh-TW-YunJheNeural",
   "usage": "./scripts/predraw.sh templates/<x>.json <run_dir> && python3 scripts/generate.py -b 书名 -a 作者 -q templates/<x>.json --run-dir <run_dir>"
 }
