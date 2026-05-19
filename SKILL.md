@@ -60,7 +60,7 @@ templates/who_moved_my_cheese.json   # 《谁动了我的奶酪》 16 句
 templates/willpower.json             # 《自控力》 17 句
 ```
 
-讀取 JSON，注意每條都有 `cn`(中文字幕) / `en`(英文字幕) / `prompt`(背景圖 prompt) 三欄。
+讀取 JSON，注意每條都有 `cn`(繁體中文字幕) / `en`(英文字幕) / `prompt`(背景圖 prompt) 三欄。內建模板皆已使用繁體中文，預設語音為 `zh-TW-YunJheNeural`（台灣男聲）；若要換成女聲可帶 `--voice zh-TW-HsiaoChenNeural`。
 
 ### Step 2 — 預先建立 run_dir
 
@@ -248,7 +248,7 @@ ls -la "$RUN_DIR/final.mp4"
 | `--author` | `-a` | 作者 | 必填 |
 | `--quotes` | `-q` | 金句 JSON | 內建 rich_dad_poor_dad.json |
 | `--output` | `-o` | 輸出根目錄 | `output` |
-| `--voice` | `-v` | edge-tts 語音 | `zh-CN-YunxiNeural` |
+| `--voice` | `-v` | edge-tts 語音 | `zh-TW-YunJheNeural` |
 | `--rate` | `-r` | 語速 | `+0%` |
 | `--images-dir` | `-I` | 預生圖目錄 | 同 run_dir |
 | `--run-dir` | — | 重用既有 run_dir | 新建時間戳目錄 |
@@ -256,12 +256,16 @@ ls -la "$RUN_DIR/final.mp4"
 
 ---
 
-**版本**: 3.1.0
-**更新**: 2026-05-17
+**版本**: 3.1.1
+**更新**: 2026-05-19
 **作者**: QClaw
 
 ## 變更紀錄
 
+- **3.1.1** (2026-05-19)
+  - 三個內建模板 (`rich_dad_poor_dad.json` / `who_moved_my_cheese.json` / `willpower.json`) 的 `cn` 字幕全部轉為繁體中文。
+  - 預設 edge-tts 語音由 `zh-CN-YunxiNeural` 改為 `zh-TW-YunJheNeural`（台灣男聲）。
+  - hyperframes 引擎輸出 HTML 的 `lang` 屬性由 `zh-CN` 改為 `zh-TW`。
 - **3.1.0** (2026-05-17)
   - 加入 `--engine` 旗標（`auto` / `ffmpeg` / `hyperframes`），預設 `auto`。
   - 新增 hyperframes 引擎 (`scripts/engines/hyperframes_engine.py`，experimental)：產生 HTML/CSS/JS 專案後呼叫 `npx hyperframes render`。

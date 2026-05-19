@@ -73,7 +73,7 @@ def _build_html(segments: list, timestamps: list, assets: Path,
 
     parts: list[str] = []
     parts.append("<!DOCTYPE html>")
-    parts.append('<html lang="zh-CN"><head><meta charset="utf-8">')
+    parts.append('<html lang="zh-TW"><head><meta charset="utf-8">')
     parts.append("<style>")
     # Font registration (msyh primary, NotoSans fallback for Linux/commercial)
     parts.append("""
