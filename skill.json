@@ -38,6 +38,6 @@
     "willpower.json - 《自控力》17句自我管理（繁體）"
   ],
   "subtitle_locale": "zh-Hant",
-  "default_voice": "zh-TW-YunJheNeural",
+  "default_voice": "zh-CN-YunxiNeural",
   "usage": "./scripts/predraw.sh templates/<x>.json <run_dir> && python3 scripts/generate.py -b 书名 -a 作者 -q templates/<x>.json --run-dir <run_dir>"
 }
